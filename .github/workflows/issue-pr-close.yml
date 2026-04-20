@@ -1,0 +1,54 @@
+name: Automate Issue and PR Close Responses
+
+on:
+  issues:
+    types:
+      - closed
+  pull_request_target:
+    types:
+      - closed
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: write
+
+jobs:
+  respond-to-events:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Respond to closed issues
+      - name: Respond to closed issues
+        if: ${{ github.event.action == 'closed' && github.event_name == 'issues' }}
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            Hello @${{ github.event.issue.user.login }}! Your issue #${{ github.event.issue.number }} has been closed.
+            Thank you for your interest in 💖AI-MedLab !!! 🙌
+
+      # Respond to merged PRs
+      - name: Respond to merged PRs
+        if: ${{ github.event.action == 'closed' && github.event.pull_request.merged == true }}
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            @${{ github.event.pull_request.user.login }} Congrats, Your pull request has been successfully merged 🥳🎉
+            Thank you for your contribution to 💖AI-MedLab !!!
+            Happy coding 🎊, Keep Contributing 🙌 !!!
+
+      # Respond to closed PRs (not merged)
+      - name: Respond to closed PRs (not merged)
+        if: ${{ github.event.action == 'closed' && github.event.pull_request.merged == false }}
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            Hello @${{ github.event.pull_request.user.login }}, your PR #${{ github.event.pull_request.number }} has been closed without merging. 😞
+            Don't be discouraged! Please feel free to look into another issue of your interest or create one.
+            Thank you for your effort and interest in 💖AI-MedLab !!! 🙌

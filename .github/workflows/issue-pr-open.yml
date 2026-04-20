@@ -1,0 +1,25 @@
+name: 'Greetings'
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: EddieHubCommunity/gh-action-community/src/welcome@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: |
+            Hey @${{ github.actor }}, Welcome to 💖AI-MedLab !!! 🎊
+            Thanks for opening an issue! 🙌 Please wait for the issue to get reviewed. If it is relevant, it will get assigned to you.
+            Happy Coding !!! ✨
+          pr-message: |
+            Hey @${{ github.actor }}, Welcome to 💖AI-MedLab !!! 🎊
+            Thanks for raising a PR! Your effort makes this project better. 🙌
+            Please wait for the PR to be reviewed.
+            Happy Coding!! ✨

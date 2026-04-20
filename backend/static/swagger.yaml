@@ -1,0 +1,1180 @@
+openapi: 3.0.0
+info:
+  title: AI-MedLab REST API ENDPOINTS
+  version: "1.0.0"
+  description: API documentation for the AI-MedLab REST API using Swagger/OpenAPI Specificaion.
+servers:
+  - url: http://127.0.0.1:5000/
+  
+tags:
+  - name: Authentication
+    description: User registration, login, account management and user details.
+  - name: Payment
+    description: Payment processing endpoints.
+  - name: Appointments
+    description: Appointment scheduling and meeting management.
+  - name: Orders
+    description: Orders related endpoints.
+  - name: Cart
+    description: Shopping cart endpoints.
+  - name: Wallet
+    description: Wallet operations and history.
+  - name: Feedback
+    description: Website feedback endpoints.
+  - name: Contact
+    description: Contact form submission.
+  - name: Media
+    description: Media file serving and email file attachments.
+paths:
+  "/":
+    get:
+      summary: Welcome message
+      tags:
+        - Authentication
+      responses:
+        "200":
+          description: Returns a welcome message.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "WelCome to 💖AI-MedLab server !!!! "
+  "/hello":
+    get:
+      summary: Hello message
+      tags:
+        - Authentication
+      responses:
+        "200":
+          description: Returns a greeting message.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Helloo.... please feel free to explore 💖AI-MedLab & lets make it better together !!!!"
+  "/checkout":
+    get:
+      summary: Create a Stripe checkout session
+      tags:
+        - Payment
+      responses:
+        "200":
+          description: Returns a checkout session URL.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+  "/create-payment-intent":
+    post:
+      summary: Create a PaymentIntent
+      tags:
+        - Payment
+      requestBody:
+        description: Payment amount in INR.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  description: Amount to charge.
+      responses:
+        "200":
+          description: PaymentIntent created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  clientSecret:
+                    type: string
+        "400":
+          description: Bad request (e.g. missing or invalid amount).
+        "500":
+          description: Unexpected error.
+  "/register":
+    post:
+      summary: Register a new user
+      tags:
+        - Authentication
+      requestBody:
+        description: Registration details (multipart/form-data).
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                registerer:
+                  type: string
+                  description: "User type: 'patient' or 'doctor'."
+                id_token:
+                  type: string
+                  description: "Firebase ID token (optional)."
+                email:
+                  type: string
+                passwd:
+                  type: string
+                profile_picture:
+                  type: string
+                  format: binary
+              required:
+                - registerer
+                - email
+      responses:
+        "200":
+          description: User created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  username:
+                    type: string
+                  usertype:
+                    type: string
+                  email:
+                    type: string
+        "400":
+          description: Bad request or user already exists.
+        "401":
+          description: Unauthorized (invalid Firebase token).
+  "/login":
+    post:
+      summary: Login a user
+      tags:
+        - Authentication
+      requestBody:
+        description: Login credentials in JSON.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_token:
+                  type: string
+                  description: "Firebase ID token (optional)."
+                email:
+                  type: string
+                passwd:
+                  type: string
+              required:
+                - email
+      responses:
+        "200":
+          description: User logged in successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  access_token:
+                    type: string
+                  username:
+                    type: string
+                  usertype:
+                    type: string
+                  email:
+                    type: string
+        "400":
+          description: Bad request (missing JSON or invalid password).
+        "401":
+          description: Unauthorized (invalid credentials or token).
+  "/verify":
+    post:
+      summary: Verify a doctor account
+      tags:
+        - Authentication
+      requestBody:
+        description: Email to verify.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+              required:
+                - email
+      responses:
+        "200":
+          description: Verification status returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  verified:
+                    type: boolean
+  "/forgot_password":
+    post:
+      summary: Request password reset
+      tags:
+        - Authentication
+      requestBody:
+        description: Provide email for password reset.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+              required:
+                - email
+      responses:
+        "200":
+          description: Password reset link sent.
+        "404":
+          description: User not found.
+  "/reset_password/{token}":
+    post:
+      summary: Reset password using token
+      tags:
+        - Authentication
+      parameters:
+        - name: token
+          in: path
+          description: Password reset token.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: New password.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+              required:
+                - password
+      responses:
+        "200":
+          description: Password has been reset.
+        "400":
+          description: Invalid or expired token.
+  "/delete_account":
+    post:
+      summary: Delete a user account
+      tags:
+        - Authentication
+      requestBody:
+        description: Provide email of the account to delete.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+              required:
+                - email
+      responses:
+        "200":
+          description: Account deleted successfully.
+        "404":
+          description: User not found.
+  "/doc_status":
+    put:
+      summary: Set doctor status to offline
+      tags:
+        - Authentication
+      requestBody:
+        description: Doctor's email.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+              required:
+                - email
+      responses:
+        "200":
+          description: Doctor status updated.
+  "/get_status":
+    get:
+      summary: Get doctors' status details
+      tags:
+        - Authentication
+      responses:
+        "200":
+          description: Returns a list of doctor statuses.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  details:
+                    type: array
+                    items:
+                      type: object
+  "/media/{path}":
+    get:
+      summary: Serve media files
+      tags:
+        - Media
+      parameters:
+        - name: path
+          in: path
+          description: Path to the media file.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Media file returned.
+  "/mail_file":
+    post:
+      summary: Send email with attached file
+      tags:
+        - Media
+      requestBody:
+        description: Form data including file and email details.
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                demail:
+                  type: string
+                  description: Doctor's email.
+                pemail:
+                  type: string
+                  description: Patient's email.
+                meetLink:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+              required:
+                - demail
+                - pemail
+                - meetLink
+                - file
+      responses:
+        "200":
+          description: File processed and email sent.
+  "/doctor_apo":
+    post:
+      summary: Get doctor's appointments
+      tags:
+        - Appointments
+      requestBody:
+        description: Provide doctor's email.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                demail:
+                  type: string
+              required:
+                - demail
+      responses:
+        "200":
+          description: Returns doctor's upcoming appointments.
+    put:
+      summary: Add a new doctor appointment
+      tags:
+        - Appointments
+      requestBody:
+        description: Appointment details.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                demail:
+                  type: string
+                date:
+                  type: string
+                time:
+                  type: string
+                patient:
+                  type: string
+                link:
+                  type: string
+              required:
+                - demail
+                - date
+                - time
+                - patient
+                - link
+      responses:
+        "200":
+          description: Appointment updated successfully.
+  "/update_doctor_ratings":
+    put:
+      summary: Update doctor's ratings and complete appointment
+      tags:
+        - Appointments
+      requestBody:
+        description: Provide patient email, doctor email, meeting link, and stars rating.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pemail:
+                  type: string
+                demail:
+                  type: string
+                meetLink:
+                  type: string
+                stars:
+                  type: number
+              required:
+                - pemail
+                - demail
+                - meetLink
+                - stars
+      responses:
+        "200":
+          description: Appointment completed and ratings updated.
+  "/set_appointment":
+    post:
+      summary: Set an appointment (patient view)
+      tags:
+        - Appointments
+      requestBody:
+        description: Appointment details.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                demail:
+                  type: string
+                pemail:
+                  type: string
+                date:
+                  type: string
+                time:
+                  type: string
+                doctor:
+                  type: string
+                link:
+                  type: string
+              required:
+                - demail
+                - pemail
+                - date
+                - time
+                - link
+      responses:
+        "200":
+          description: Appointment fixed successfully.
+    put:
+      summary: Set an appointment (doctor view)
+      tags:
+        - Appointments
+      requestBody:
+        description: Appointment details.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                demail:
+                  type: string
+                pemail:
+                  type: string
+                date:
+                  type: string
+                time:
+                  type: string
+                link:
+                  type: string
+              required:
+                - demail
+                - pemail
+                - date
+                - time
+                - link
+      responses:
+        "200":
+          description: Appointment fixed successfully.
+  "/patient_apo":
+    post:
+      summary: Get patient appointments
+      tags:
+        - Appointments
+      requestBody:
+        description: Provide patient's email.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+              required:
+                - email
+      responses:
+        "200":
+          description: Returns patient's upcoming appointments.
+    put:
+      summary: Add a new patient appointment
+      tags:
+        - Appointments
+      requestBody:
+        description: Appointment details.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                date:
+                  type: string
+                time:
+                  type: string
+                doctor:
+                  type: string
+                demail:
+                  type: string
+                link:
+                  type: string
+              required:
+                - email
+                - date
+                - time
+                - doctor
+                - demail
+                - link
+      responses:
+        "200":
+          description: Appointment updated successfully.
+  "/completed_meets":
+    post:
+      summary: Get completed meets for a user
+      tags:
+        - Appointments
+      requestBody:
+        description: Provide user's email.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                useremail:
+                  type: string
+              required:
+                - useremail
+      responses:
+        "200":
+          description: Returns completed meets.
+  "/make_meet":
+    post:
+      summary: Retrieve doctor's meet link
+      tags:
+        - Appointments
+      requestBody:
+        description: Provide doctor's email.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                demail:
+                  type: string
+              required:
+                - demail
+      responses:
+        "200":
+          description: Returns doctor's meet link.
+    put:
+      summary: Create/update meet link and appointments
+      tags:
+        - Appointments
+      requestBody:
+        description: Meet details.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                demail:
+                  type: string
+                pemail:
+                  type: string
+                date:
+                  type: string
+                time:
+                  type: string
+                link:
+                  type: string
+              required:
+                - demail
+                - pemail
+                - date
+                - time
+                - link
+      responses:
+        "200":
+          description: Meet link created and appointments updated.
+  "/meet_status":
+    post:
+      summary: Update or get meeting status
+      tags:
+        - Appointments
+      requestBody:
+        description: Provide doctor's email and optional meet link.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                link:
+                  type: string
+      responses:
+        "200":
+          description: Status updated successfully.
+        "208":
+          description: Doctor is already in a meet.
+  "/delete_meet":
+    put:
+      summary: Delete meet link
+      tags:
+        - Appointments
+      requestBody:
+        description: Provide doctor's email.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+              required:
+                - email
+      responses:
+        "200":
+          description: Meet link deleted successfully.
+  "/currently_in_meet":
+    post:
+      summary: Get current meeting status
+      tags:
+        - Appointments
+      requestBody:
+        description: Provide doctor's email.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+              required:
+                - email
+      responses:
+        "200":
+          description: Returns current meeting status.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  curmeet:
+                    type: boolean
+    put:
+      summary: Set currently in meet status
+      tags:
+        - Appointments
+      requestBody:
+        description: Provide doctor's email.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+              required:
+                - email
+      responses:
+        "200":
+          description: Currently in meet status set.
+  "/doctor_avilability":
+    put:
+      summary: Set doctor availability to online
+      tags:
+        - Appointments
+      requestBody:
+        description: Provide doctor's email.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                demail:
+                  type: string
+              required:
+                - demail
+      responses:
+        "200":
+          description: Doctor status updated.
+  "/add_order":
+    post:
+      summary: Add an order
+      tags:
+        - Orders
+      requestBody:
+        description: Order details.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                orders:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        "200":
+          description: Order added successfully.
+  "/get_orders":
+    post:
+      summary: Get orders for a user
+      tags:
+        - Orders
+      requestBody:
+        description: Provide user's email.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+              required:
+                - email
+      responses:
+        "200":
+          description: Returns list of orders.
+  "/update_details":
+    put:
+      summary: Update user details
+      tags:
+        - Authentication
+      requestBody:
+        description: Form data for updating user details.
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                usertype:
+                  type: string
+                username:
+                  type: string
+                phone:
+                  type: string
+                gender:
+                  type: string
+                profile_picture:
+                  type: string
+                  format: binary
+                specialization:
+                  type: string
+                fee:
+                  type: string
+                doctorId:
+                  type: string
+                age:
+                  type: string
+                passwd:
+                  type: string
+              required:
+                - email
+                - usertype
+      responses:
+        "200":
+          description: User details updated successfully.
+        "404":
+          description: User not found.
+  "/add_to_cart":
+    post:
+      summary: Add items to cart
+      tags:
+        - Cart
+      requestBody:
+        description: Provide user's email and cart items.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                cart:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        "200":
+          description: Cart updated successfully.
+  "/get_cart":
+    post:
+      summary: Get cart items
+      tags:
+        - Cart
+      requestBody:
+        description: Provide user's email.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+              required:
+                - email
+      responses:
+        "200":
+          description: Returns cart items.
+  "/increase_quantity":
+    post:
+      summary: Increase quantity of a cart item
+      tags:
+        - Cart
+      requestBody:
+        description: Provide user's email and item id.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                id:
+                  type: string
+              required:
+                - email
+                - id
+      responses:
+        "200":
+          description: Quantity increased successfully.
+  "/decrease_quantity":
+    post:
+      summary: Decrease quantity of a cart item
+      tags:
+        - Cart
+      requestBody:
+        description: Provide user's email and item id.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                id:
+                  type: string
+              required:
+                - email
+                - id
+      responses:
+        "200":
+          description: Quantity decreased successfully.
+  "/delete_cart":
+    post:
+      summary: Delete a cart item
+      tags:
+        - Cart
+      requestBody:
+        description: Provide user's email and item id.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                id:
+                  type: string
+              required:
+                - email
+                - id
+      responses:
+        "200":
+          description: Cart item deleted successfully.
+  "/delete_all_cart":
+    post:
+      summary: Delete all cart items
+      tags:
+        - Cart
+      requestBody:
+        description: Provide user's email.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+              required:
+                - email
+      responses:
+        "200":
+          description: All cart items deleted.
+  "/wallet":
+    post:
+      summary: Credit user's wallet
+      tags:
+        - Wallet
+      requestBody:
+        description: Provide user's email and wallet amount to add.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                walletAmount:
+                  type: number
+              required:
+                - email
+                - walletAmount
+      responses:
+        "200":
+          description: Wallet updated successfully.
+  "/get_wallet":
+    post:
+      summary: Get wallet balance
+      tags:
+        - Wallet
+      requestBody:
+        description: Provide user's email.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+              required:
+                - email
+      responses:
+        "200":
+          description: Returns wallet balance.
+  "/debit_wallet":
+    post:
+      summary: Debit user's wallet
+      tags:
+        - Wallet
+      requestBody:
+        description: Provide user's email and wallet amount to debit (optionally include doctor's email).
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                walletAmount:
+                  type: number
+                demail:
+                  type: string
+                  description: "Doctor's email if applicable."
+              required:
+                - email
+                - walletAmount
+      responses:
+        "200":
+          description: Wallet debited successfully.
+  "/add_wallet_history":
+    post:
+      summary: Add wallet transaction history
+      tags:
+        - Wallet
+      requestBody:
+        description: Provide user's email and a history object.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                history:
+                  type: object
+              required:
+                - email
+                - history
+      responses:
+        "200":
+          description: Wallet history added successfully.
+  "/get_wallet_history":
+    post:
+      summary: Get wallet transaction history
+      tags:
+        - Wallet
+      requestBody:
+        description: Provide user's email.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+              required:
+                - email
+      responses:
+        "200":
+          description: Returns wallet history.
+  "/website_feedback":
+    post:
+      summary: Submit website feedback
+      tags:
+        - Feedback
+      requestBody:
+        description: Feedback details.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                rating:
+                  type: number
+                comments:
+                  type: string
+                type:
+                  type: string
+                timestamp:
+                  type: string
+                keep_it_anonymous:
+                  type: boolean
+              required:
+                - email
+      responses:
+        "200":
+          description: Feedback saved successfully.
+        "404":
+          description: User not found.
+    get:
+      summary: Get all website feedback
+      tags:
+        - Feedback
+      responses:
+        "200":
+          description: Returns a list of all feedback entries.
+  "/website_feedback/{id}":
+    get:
+      summary: Get website feedback by ID
+      tags:
+        - Feedback
+      parameters:
+        - name: id
+          in: path
+          description: Feedback ID.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Returns the feedback entry.
+        "404":
+          description: Feedback not found.
+  "/contact":
+    post:
+      summary: Send a contact message
+      tags:
+        - Contact
+      requestBody:
+        description: Contact form details.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                subject:
+                  type: string
+                message:
+                  type: string
+              required:
+                - name
+                - email
+                - subject
+                - message
+      responses:
+        "200":
+          description: Message sent successfully.
+        "500":
+          description: Error sending message.
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - BearerAuth: []
