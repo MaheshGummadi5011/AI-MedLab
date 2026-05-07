@@ -1,6 +1,6 @@
 import datetime
 import uuid
-from flask import Flask, request, Response, redirect, render_template, send_from_directory, jsonify, url_for
+from flask import Flask, request, Response, redirect, render_template, send_from_directory, jsonify, url_for, make_response
 import secrets
 import stripe
 from flask_mail import Mail, Message
@@ -58,47 +58,50 @@ limiter = Limiter(
     default_limits=["200 per day", "50 per hour"]
 )
 
-# ✅ FIXED: CORS configuration with explicit origin handling for Vercel deployments
+# ✅ FIXED: Simplified CORS configuration for Vercel
 CORS(app, 
-     resources={r"/*": {
-         "origins": [
-             "http://localhost:3000", 
-             "http://localhost:5173", 
-             "http://127.0.0.1:3000", 
-             "http://127.0.0.1:5173",
-             "https://ai-medlab.vercel.app",
-             "https://ai-medlab-frontend.vercel.app",
-             "https://ai-med-lab-98qa.vercel.app",
-             "https://ai-med-lab-git-main-maheshs-projects-d82fdfec.vercel.app"  # Backend itself
-         ],
-         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-         "allow_headers": ["Content-Type", "Authorization"],
-         "expose_headers": ["Content-Type", "Authorization"],
-         "supports_credentials": True,
-         "max_age": 3600
-     }})
+     origins=["https://ai-med-lab-98qa.vercel.app", "http://localhost:3000", "http://localhost:5173"],
+     allow_headers=["Content-Type", "Authorization"],
+     methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+     supports_credentials=True,
+     max_age=3600)
 
-# ✅ FIXED: Add after_request handler to ensure CORS headers are always present
+# ✅ FIXED: Add OPTIONS method to all routes for preflight requests
+@app.before_request
+def handle_preflight():
+    if request.method == "OPTIONS":
+        response = make_response()
+        origin = request.headers.get('Origin')
+        allowed_origins = [
+            "https://ai-med-lab-98qa.vercel.app",
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:5173"
+        ]
+        if origin in allowed_origins:
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, PATCH, OPTIONS'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+            response.headers['Access-Control-Allow-Credentials'] = 'true'
+        return response, 200
+
+# ✅ FIXED: Ensure CORS headers are on every response
 @app.after_request
 def after_request(response):
     origin = request.headers.get('Origin')
     allowed_origins = [
-        "http://localhost:3000", 
-        "http://localhost:5173", 
-        "http://127.0.0.1:3000", 
-        "http://127.0.0.1:5173",
-        "https://ai-medlab.vercel.app",
-        "https://ai-medlab-frontend.vercel.app",
         "https://ai-med-lab-98qa.vercel.app",
-        "https://ai-med-lab-git-main-maheshs-projects-d82fdfec.vercel.app"
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173"
     ]
-    
     if origin in allowed_origins:
         response.headers['Access-Control-Allow-Origin'] = origin
         response.headers['Access-Control-Allow-Credentials'] = 'true'
-        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, PATCH, OPTIONS'
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-    
     return response
 bcrypt = Bcrypt(app)
 
