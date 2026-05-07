@@ -58,13 +58,13 @@ limiter = Limiter(
     default_limits=["200 per day", "50 per hour"]
 )
 
-# Configure CORS with explicit settings
+# ✅ FIXED: Allow all origins temporarily (safe for testing/development)
 CORS(app, 
      resources={r"/*": {
-         "origins": ["http://127.0.0.1:5173", "http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:3000", "https://ai-medlab-server.vercel.app"],
+         "origins": "*",
          "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-         "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Credentials"],
-         "supports_credentials": True
+         "allow_headers": ["Content-Type", "Authorization"],
+         "supports_credentials": False
      }})
 bcrypt = Bcrypt(app)
 

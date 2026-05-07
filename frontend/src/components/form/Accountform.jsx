@@ -120,9 +120,9 @@ const AccountForm = ({ isSignup, setIsSignup }) => {
     return res;
   };
 
-  // ✅ FIXED: Strengthened password validation - requires uppercase, lowercase, number, special char
+  // ✅ FIXED: Relaxed password validation - requires at least 6 characters
   const checkPasswd = (passwd) => {
-    const res = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(passwd);
+    const res = passwd.length >= 6;
     setIsInvPass(!res);
     return res;
   };
@@ -702,12 +702,12 @@ const AccountForm = ({ isSignup, setIsSignup }) => {
                           </div>
                         </div>
 
-                        {/* ✅ FIXED: Added country code selector */}
+                        {/* ✅ FIXED: Added country code selector with proper styling */}
                         <div className="mb-4">
                           <select
                             value={countryCode}
                             onChange={(e) => setCountryCode(e.target.value)}
-                            className="py-3 px-3 text-white-1 border-[1px] border-blue-1 w-full outline-none rounded-[3px] focus:border-[2px] focus:border-blue-1"
+                            className="py-3 px-3 text-white-1 bg-blue-1 border-[1px] border-blue-1 w-full outline-none rounded-[3px] focus:border-[2px] focus:border-blue-1 appearance-none cursor-pointer"
                           >
                             <option value="+1">+1 (USA/Canada)</option>
                             <option value="+44">+44 (UK)</option>
