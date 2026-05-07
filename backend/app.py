@@ -58,7 +58,7 @@ limiter = Limiter(
     default_limits=["200 per day", "50 per hour"]
 )
 
-# ✅ FIXED: CORS configuration with credentials support for all environments
+# ✅ FIXED: CORS configuration with explicit origin handling for Vercel deployments
 CORS(app, 
      resources={r"/*": {
          "origins": [
@@ -68,13 +68,38 @@ CORS(app,
              "http://127.0.0.1:5173",
              "https://ai-medlab.vercel.app",
              "https://ai-medlab-frontend.vercel.app",
-             "https://ai-med-lab-98qa.vercel.app"
+             "https://ai-med-lab-98qa.vercel.app",
+             "https://ai-med-lab-git-main-maheshs-projects-d82fdfec.vercel.app"  # Backend itself
          ],
          "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
          "allow_headers": ["Content-Type", "Authorization"],
+         "expose_headers": ["Content-Type", "Authorization"],
          "supports_credentials": True,
          "max_age": 3600
      }})
+
+# ✅ FIXED: Add after_request handler to ensure CORS headers are always present
+@app.after_request
+def after_request(response):
+    origin = request.headers.get('Origin')
+    allowed_origins = [
+        "http://localhost:3000", 
+        "http://localhost:5173", 
+        "http://127.0.0.1:3000", 
+        "http://127.0.0.1:5173",
+        "https://ai-medlab.vercel.app",
+        "https://ai-medlab-frontend.vercel.app",
+        "https://ai-med-lab-98qa.vercel.app",
+        "https://ai-med-lab-git-main-maheshs-projects-d82fdfec.vercel.app"
+    ]
+    
+    if origin in allowed_origins:
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    
+    return response
 bcrypt = Bcrypt(app)
 
 # Twilio Whatsapp notification variables
