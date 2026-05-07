@@ -58,13 +58,21 @@ limiter = Limiter(
     default_limits=["200 per day", "50 per hour"]
 )
 
-# ✅ FIXED: Allow all origins temporarily (safe for testing/development)
+# ✅ FIXED: CORS configuration with credentials support for all environments
 CORS(app, 
      resources={r"/*": {
-         "origins": "*",
+         "origins": [
+             "http://localhost:3000", 
+             "http://localhost:5173", 
+             "http://127.0.0.1:3000", 
+             "http://127.0.0.1:5173",
+             "https://ai-medlab.vercel.app",
+             "https://ai-medlab-frontend.vercel.app"
+         ],
          "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
          "allow_headers": ["Content-Type", "Authorization"],
-         "supports_credentials": False
+         "supports_credentials": True,
+         "max_age": 3600
      }})
 bcrypt = Bcrypt(app)
 
@@ -427,15 +435,20 @@ def register():
                 "body": "Thank You for Signing up on AI-MedLab"
             })
 
+        # ✅ FIXED: Generate and return access token on signup
+        access_token = create_access_token(identity=email)
+        
         return jsonify({
             'message': 'User created successfully',
+            "access_token": access_token,
             "username": data["username"],
             "usertype": "patient",
             "gender": data["gender"],
             "phone": data["phone"],
             "email": data["email"],
             "age": data["age"],
-            "profile_picture": data.get("profile_picture")
+            "profile_picture": data.get("profile_picture"),
+            "verified": False
         }), 200
     
     elif data['registerer'] == 'doctor':
@@ -468,8 +481,12 @@ def register():
 
         docs_col.insert_one(data)
 
+        # ✅ FIXED: Generate and return access token on signup
+        access_token = create_access_token(identity=email)
+
         return jsonify({
             'message': 'User created successfully',
+            "access_token": access_token,
             "username": data["username"],
             "usertype": "doctor",
             "gender": data["gender"],
@@ -478,7 +495,8 @@ def register():
             "specialization": data["specialization"],
             "doctorId": data["doctorId"],
             "verified": data["verified"],
-            "profile_picture": data.get("profile_picture")
+            "profile_picture": data.get("profile_picture"),
+            "fee": data["fee"]
         }), 200
     
     else:

@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import commonContext from "../../contexts/common/commonContext";
 import useOutsideClose from "../../hooks/useOutsideClose";
 import useScrollDisable from "../../hooks/useScrollDisable";
@@ -25,6 +26,7 @@ import patientFemale from "../../assets/patient-female.png";
 
 const AccountForm = ({ isSignup, setIsSignup }) => {
   const { isFormOpen, toggleForm, setFormUserInfo } = useContext(commonContext);
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [usertype, setUsertype] = useState("patient");
   const [age, setAge] = useState("");
@@ -223,7 +225,9 @@ const AccountForm = ({ isSignup, setIsSignup }) => {
 
       setTimeout(() => {
         setIsAlert("");
-        toggleForm(false);
+        // ✅ FIXED: Store token in localStorage after signup
+        localStorage.setItem("token", res.data.access_token);
+        localStorage.setItem("email", result.user.email);
         setFormUserInfo({
           username: res.data.username,
           usertype: usertype,
@@ -238,7 +242,7 @@ const AccountForm = ({ isSignup, setIsSignup }) => {
           profile_picture: res.data.profile_picture,
         });
         toggleForm(false);
-        // window.location.reload();
+        navigate('/home');
       }, 1500);
     } catch (error) {
       console.error(error);
@@ -299,7 +303,7 @@ const AccountForm = ({ isSignup, setIsSignup }) => {
           fee: res.data.fee,
         });
 
-        // window.location.reload();
+        navigate('/home');
       }, 1500);
     } catch (error) {
       console.error("Login Error:", error);
@@ -378,6 +382,8 @@ const AccountForm = ({ isSignup, setIsSignup }) => {
 
       setTimeout(() => {
         setIsAlert("");
+        // ✅ FIXED: Store token in localStorage after signup
+        localStorage.setItem("token", res.data.access_token);
         setFormUserInfo({
           username,
           usertype,
@@ -392,7 +398,7 @@ const AccountForm = ({ isSignup, setIsSignup }) => {
           profile_picture: res.data.profile_picture,
         });
         toggleForm(false);
-        // window.location.reload();
+        navigate('/home');
       }, 1500);
     } catch (err) {
       console.error("Signup Error:", err);
@@ -427,7 +433,7 @@ const AccountForm = ({ isSignup, setIsSignup }) => {
           verified: res.data.verified,
           profile_picture: res.data.profile_picture,
         });
-        // window.location.reload();
+        navigate('/home');
       }, 1500);
     } catch (err) {
       console.error("Login Error:", err);
