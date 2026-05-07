@@ -58,9 +58,9 @@ limiter = Limiter(
     default_limits=["200 per day", "50 per hour"]
 )
 
-# ✅ FIXED: Simplified CORS configuration for Vercel
+# ✅ FIXED: Simplified CORS configuration for Vercel - support all frontend URLs
 CORS(app, 
-     origins=["https://ai-med-lab-98qa.vercel.app", "http://localhost:3000", "http://localhost:5173"],
+     origins=["https://ai-med-lab-98qa.vercel.app", "https://ai-med-lab-eight.vercel.app", "http://localhost:3000", "http://localhost:5173"],
      allow_headers=["Content-Type", "Authorization"],
      methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
      supports_credentials=True,
@@ -74,6 +74,7 @@ def handle_preflight():
         origin = request.headers.get('Origin')
         allowed_origins = [
             "https://ai-med-lab-98qa.vercel.app",
+            "https://ai-med-lab-eight.vercel.app",
             "http://localhost:3000",
             "http://localhost:5173",
             "http://127.0.0.1:3000",
@@ -92,6 +93,7 @@ def after_request(response):
     origin = request.headers.get('Origin')
     allowed_origins = [
         "https://ai-med-lab-98qa.vercel.app",
+        "https://ai-med-lab-eight.vercel.app",
         "http://localhost:3000",
         "http://localhost:5173",
         "http://127.0.0.1:3000",
